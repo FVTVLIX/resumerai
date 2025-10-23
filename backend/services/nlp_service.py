@@ -217,7 +217,7 @@ class NLPService:
 
                 education = Education(
                     degree=match.group(),
-                    field=field,
+                    field_of_study=field,
                     institution=institution,
                     year=year
                 )

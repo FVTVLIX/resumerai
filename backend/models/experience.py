@@ -99,7 +99,7 @@ class Education:
     """Model for education"""
 
     degree: str
-    field: Optional[str] = None
+    field_of_study: Optional[str] = None
     institution: str = ""
     year: Optional[int] = None
     gpa: Optional[float] = None
@@ -109,7 +109,7 @@ class Education:
         """Convert education to dictionary"""
         return {
             'degree': self.degree,
-            'field': self.field,
+            'field': self.field_of_study,  # Keep 'field' in dict for API compatibility
             'institution': self.institution,
             'year': self.year,
             'gpa': self.gpa,
@@ -121,7 +121,7 @@ class Education:
         """Create education from dictionary"""
         return cls(
             degree=data['degree'],
-            field=data.get('field'),
+            field_of_study=data.get('field'),  # Accept 'field' from API
             institution=data.get('institution', ''),
             year=data.get('year'),
             gpa=data.get('gpa'),
@@ -131,8 +131,8 @@ class Education:
     def __str__(self):
         """String representation"""
         parts = [self.degree]
-        if self.field:
-            parts.append(f"in {self.field}")
+        if self.field_of_study:
+            parts.append(f"in {self.field_of_study}")
         if self.institution:
             parts.append(f"from {self.institution}")
         return " ".join(parts)

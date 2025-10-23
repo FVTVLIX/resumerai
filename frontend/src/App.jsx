@@ -1,54 +1,10 @@
 import { useState } from 'react'
-import { ThemeProvider, createTheme, CssBaseline, Container, Box } from '@mui/material'
 import Header from './components/Header'
 import UploadSection from './components/UploadSection'
 import AnalysisProgress from './components/AnalysisProgress'
 import ResultsDashboard from './components/ResultsDashboard'
 import ErrorMessage from './components/ErrorMessage'
 import { analyzeResume } from './services/api'
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976D2',
-      light: '#42A5F5',
-      dark: '#1565C0',
-    },
-    secondary: {
-      main: '#DC004E',
-      light: '#F50057',
-      dark: '#C51162',
-    },
-    success: {
-      main: '#4CAF50',
-    },
-    warning: {
-      main: '#FF9800',
-    },
-    error: {
-      main: '#F44336',
-    },
-    info: {
-      main: '#2196F3',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-      letterSpacing: '-0.5px',
-    },
-    h2: {
-      fontSize: '2rem',
-      fontWeight: 700,
-    },
-    h3: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-    },
-  },
-})
 
 function App() {
   const [stage, setStage] = useState('upload') // 'upload', 'analyzing', 'results', 'error'
@@ -105,40 +61,37 @@ function App() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        <Header />
+    <div className="min-h-screen bg-background">
+      <Header />
 
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          {stage === 'upload' && (
-            <UploadSection onFileUpload={handleFileUpload} />
-          )}
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {stage === 'upload' && (
+          <UploadSection onFileUpload={handleFileUpload} />
+        )}
 
-          {stage === 'analyzing' && (
-            <AnalysisProgress
-              progress={progress}
-              currentStep={currentStep}
-              onCancel={handleReset}
-            />
-          )}
+        {stage === 'analyzing' && (
+          <AnalysisProgress
+            progress={progress}
+            currentStep={currentStep}
+            onCancel={handleReset}
+          />
+        )}
 
-          {stage === 'results' && analysisResult && (
-            <ResultsDashboard
-              data={analysisResult}
-              onNewAnalysis={handleReset}
-            />
-          )}
+        {stage === 'results' && analysisResult && (
+          <ResultsDashboard
+            data={analysisResult}
+            onNewAnalysis={handleReset}
+          />
+        )}
 
-          {stage === 'error' && (
-            <ErrorMessage
-              error={error}
-              onRetry={handleReset}
-            />
-          )}
-        </Container>
-      </Box>
-    </ThemeProvider>
+        {stage === 'error' && (
+          <ErrorMessage
+            error={error}
+            onRetry={handleReset}
+          />
+        )}
+      </div>
+    </div>
   )
 }
 

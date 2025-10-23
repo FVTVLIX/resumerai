@@ -4,10 +4,18 @@ Input validation utilities for file uploads and data.
 """
 
 import os
-import magic
 from werkzeug.datastructures import FileStorage
 from typing import Tuple
 from .exceptions import FileValidationError
+
+# Try to import python-magic, but don't fail if it's not available
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except (ImportError, OSError):
+    # python-magic not available or libmagic not found
+    # Will fall back to extension-only validation
+    MAGIC_AVAILABLE = False
 
 
 class FileValidator:
@@ -107,6 +115,10 @@ class FileValidator:
         Returns:
             True if MIME type is allowed, False otherwise
         """
+        # If magic is not available, skip MIME check (rely on extension only)
+        if not MAGIC_AVAILABLE:
+            return True
+
         try:
             # Read first 2048 bytes for MIME detection
             file.seek(0)

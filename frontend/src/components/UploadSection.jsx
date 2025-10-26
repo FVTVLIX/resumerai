@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, CheckCircle, TrendingUp, Lightbulb, X } from 'lucide-react'
+import { Upload, CheckCircle, TrendingUp, Lightbulb, X, Link } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Alert, AlertDescription } from './ui/alert'
+import { Input } from './ui/input'
 
 function UploadSection({ onFileUpload }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [error, setError] = useState(null)
+  const [jobUrl, setJobUrl] = useState('')
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     setError(null)
@@ -41,13 +43,14 @@ function UploadSection({ onFileUpload }) {
 
   const handleAnalyze = () => {
     if (selectedFile) {
-      onFileUpload(selectedFile)
+      onFileUpload(selectedFile, jobUrl)
     }
   }
 
   const handleClear = () => {
     setSelectedFile(null)
     setError(null)
+    setJobUrl('')
   }
 
   return (
@@ -87,6 +90,28 @@ function UploadSection({ onFileUpload }) {
           </p>
         </div>
       </div>
+
+      {/* Job URL Input (Optional) */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Link className="h-5 w-5 text-primary mt-2.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">Job Posting URL (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Compare your resume to a specific job posting for tailored recommendations
+              </p>
+              <Input
+                type="url"
+                placeholder="https://linkedin.com/jobs/view/123456789 or any job posting URL"
+                value={jobUrl}
+                onChange={(e) => setJobUrl(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Error Message */}
       {error && (

@@ -18,12 +18,17 @@ const api = axios.create({
 /**
  * Analyze resume file
  * @param {File} file - Resume file (PDF or DOCX)
+ * @param {string} jobUrl - Optional job posting URL for comparison
  * @returns {Promise<Object>} Analysis result
  */
-export const analyzeResume = async (file) => {
+export const analyzeResume = async (file, jobUrl = '') => {
   try {
     const formData = new FormData()
     formData.append('file', file)
+
+    if (jobUrl && jobUrl.trim()) {
+      formData.append('job_url', jobUrl.trim())
+    }
 
     const response = await api.post('/analyze', formData, {
       onUploadProgress: (progressEvent) => {

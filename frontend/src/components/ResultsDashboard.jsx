@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, RefreshCw, ChevronDown } from 'lucide-react'
+import { Download, RefreshCw, ChevronDown, Target, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
 import { Badge } from './ui/badge'
@@ -112,6 +112,108 @@ function ResultsDashboard({ data, onNewAnalysis }) {
           </Button>
         </div>
       </div>
+
+      {/* Job Match Section */}
+      {data.job_match && !data.job_match.error && (
+        <Card className="border-primary bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Target className="h-6 w-6 text-primary" />
+                <div>
+                  <CardTitle>Job Match Analysis</CardTitle>
+                  <CardDescription>
+                    {data.job_match.job_title} at {data.job_match.job_company}
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-primary">
+                  {Math.round(data.job_match.overall_match_score)}%
+                </div>
+                <p className="text-sm text-muted-foreground">Match Score</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Skills Match */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  Matching Skills ({data.job_match.skills_match.matched_count}/{data.job_match.skills_match.total_job_skills})
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {data.job_match.skills_match.matching_skills.slice(0, 10).map((skill, idx) => (
+                    <Badge key={idx} variant="default">
+                      {skill}
+                    </Badge>
+                  ))}
+                  {data.job_match.skills_match.matching_skills.length > 10 && (
+                    <Badge variant="outline">
+                      +{data.job_match.skills_match.matching_skills.length - 10} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Missing Skills */}
+              {data.job_match.skills_match.missing_skills.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    Skills to Add
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {data.job_match.skills_match.missing_skills.slice(0, 10).map((skill, idx) => (
+                      <Badge key={idx} variant="destructive">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {data.job_match.skills_match.missing_skills.length > 10 && (
+                      <Badge variant="outline">
+                        +{data.job_match.skills_match.missing_skills.length - 10} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Job Match Recommendations */}
+            {data.job_match.recommendations && data.job_match.recommendations.length > 0 && (
+              <div className="mt-6">
+                <h4 className="font-semibold mb-3">Tailored Recommendations</h4>
+                <div className="space-y-2">
+                  {data.job_match.recommendations.slice(0, 3).map((rec, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-background rounded-lg">
+                      <span className="text-lg">
+                        {rec.priority === 'high' && '🔴'}
+                        {rec.priority === 'medium' && '🟡'}
+                        {rec.priority === 'low' && '🟢'}
+                      </span>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{rec.title}</p>
+                        <p className="text-sm text-muted-foreground">{rec.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Job Match Error */}
+      {data.job_match && data.job_match.error && (
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertDescription>
+            {data.job_match.error_message}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Overall Score */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

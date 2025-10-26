@@ -8,6 +8,8 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from services import ResumeAnalyzer
+from services.job_scraper import JobScraperService
+from services.job_matcher import JobMatcherService
 from utils.validators import FileValidator
 from utils.exceptions import ResumeAnalyzerException
 
@@ -57,9 +59,10 @@ def analyze_resume():
 
     Request:
         - multipart/form-data with 'file' field
+        - optional 'job_url' form field for job posting comparison
 
     Returns:
-        JSON response with analysis results
+        JSON response with analysis results and optional job match data
 
     Errors:
         - 400: Invalid request
@@ -80,6 +83,7 @@ def analyze_resume():
             }), 400
 
         file = request.files['file']
+        job_url = request.form.get('job_url', '').strip()
 
         # Validate file
         validator = FileValidator(
@@ -102,13 +106,40 @@ def analyze_resume():
             enable_ai_suggestions=current_app.config.get('ENABLE_AI_SUGGESTIONS', True)
         )
 
-        # Perform analysis
+        # Perform resume analysis
         result = analyzer.analyze(file)
+        response_data = result.to_dict()
+
+        # If job URL provided, perform job matching
+        if job_url:
+            logger.info(f"Job URL provided: {job_url}")
+            try:
+                # Scrape job posting
+                job_scraper = JobScraperService()
+                job_data = job_scraper.scrape_job_posting(job_url)
+                logger.info(f"Job scraped successfully: {job_data.get('title', 'N/A')}")
+
+                # Match resume to job
+                job_matcher = JobMatcherService()
+                job_match_result = job_matcher.match_resume_to_job(response_data, job_data)
+
+                # Add job match data to response
+                response_data['job_match'] = job_match_result
+                logger.info(f"Job match score: {job_match_result.get('overall_match_score', 0)}")
+
+            except Exception as e:
+                # Log error but don't fail the entire request
+                logger.error(f"Job matching failed: {str(e)}")
+                response_data['job_match'] = {
+                    'error': True,
+                    'error_message': f"Failed to analyze job posting: {str(e)}",
+                    'overall_match_score': 0
+                }
 
         # Return successful response
         return jsonify({
             'success': True,
-            'data': result.to_dict()
+            'data': response_data
         }), 200
 
     except ResumeAnalyzerException as e:

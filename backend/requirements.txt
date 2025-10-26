@@ -16,6 +16,11 @@ spacy>=3.7.0,<4.0.0
 nltk>=3.8.1
 openai>=1.0.0
 
+# Web Scraping
+beautifulsoup4>=4.12.0
+requests>=2.31.0
+lxml>=4.9.0
+
 # Data Validation & Processing
 marshmallow>=3.20.0
 python-dateutil>=2.8.2

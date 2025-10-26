@@ -13,19 +13,28 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState('')
 
-  const handleFileUpload = async (file) => {
+  const handleFileUpload = async (file, jobUrl = '') => {
     setStage('analyzing')
     setError(null)
     setProgress(0)
 
-    // Simulate progress steps
-    const steps = [
-      { progress: 10, message: 'Uploading file...' },
-      { progress: 30, message: 'Extracting text...' },
-      { progress: 60, message: 'Analyzing skills and experience...' },
-      { progress: 80, message: 'Generating AI suggestions...' },
-      { progress: 95, message: 'Finalizing results...' },
-    ]
+    // Simulate progress steps - add job scraping step if URL provided
+    const steps = jobUrl
+      ? [
+          { progress: 10, message: 'Uploading file...' },
+          { progress: 25, message: 'Scraping job posting...' },
+          { progress: 40, message: 'Extracting text...' },
+          { progress: 60, message: 'Analyzing skills and experience...' },
+          { progress: 80, message: 'Generating AI suggestions...' },
+          { progress: 95, message: 'Comparing to job posting...' },
+        ]
+      : [
+          { progress: 10, message: 'Uploading file...' },
+          { progress: 30, message: 'Extracting text...' },
+          { progress: 60, message: 'Analyzing skills and experience...' },
+          { progress: 80, message: 'Generating AI suggestions...' },
+          { progress: 95, message: 'Finalizing results...' },
+        ]
 
     let currentStepIndex = 0
 
@@ -38,7 +47,7 @@ function App() {
     }, 1000)
 
     try {
-      const result = await analyzeResume(file)
+      const result = await analyzeResume(file, jobUrl)
       clearInterval(progressInterval)
       setProgress(100)
       setAnalysisResult(result)

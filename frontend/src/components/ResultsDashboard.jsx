@@ -1,27 +1,16 @@
 import { useState } from 'react'
+import { Download, RefreshCw, ChevronDown, Target, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
+import { Badge } from './ui/badge'
 import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  CircularProgress,
-  Chip,
-  List,
-  ListItem,
-  ListItemText,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Alert,
-  LinearProgress,
-  Divider,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import FileDownloadIcon from '@mui/icons-material/FileDownload'
-import RefreshIcon from '@mui/icons-material/Refresh'
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from './ui/accordion'
+import { Alert, AlertDescription } from './ui/alert'
+import { Progress } from './ui/progress'
 import {
   PieChart,
   Pie,
@@ -36,22 +25,22 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const COLORS = ['#1976D2', '#42A5F5', '#64B5F6', '#90CAF9', '#BBDEFB']
+const COLORS = ['#0EA5E9', '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7']
 
 const getScoreLabel = (score) => {
-  if (score >= 90) return { label: 'Excellent', color: 'success' }
-  if (score >= 75) return { label: 'Good', color: 'info' }
-  if (score >= 60) return { label: 'Fair', color: 'warning' }
-  return { label: 'Needs Work', color: 'error' }
+  if (score >= 90) return { label: 'Excellent', variant: 'default' }
+  if (score >= 75) return { label: 'Good', variant: 'secondary' }
+  if (score >= 60) return { label: 'Fair', variant: 'outline' }
+  return { label: 'Needs Work', variant: 'destructive' }
 }
 
-const getPriorityColor = (priority) => {
-  const colors = {
-    high: 'error',
-    medium: 'warning',
-    low: 'success',
+const getPriorityVariant = (priority) => {
+  const variants = {
+    high: 'destructive',
+    medium: 'outline',
+    low: 'secondary',
   }
-  return colors[priority] || 'default'
+  return variants[priority] || 'default'
 }
 
 const getPriorityIcon = (priority) => {
@@ -79,17 +68,17 @@ function ResultsDashboard({ data, onNewAnalysis }) {
     {
       name: 'Action Verbs',
       value: data.analysis.action_verb_usage * 100,
-      color: '#1976D2',
+      color: '#0EA5E9',
     },
     {
       name: 'Quantification',
       value: data.analysis.quantification_rate * 100,
-      color: '#42A5F5',
+      color: '#3B82F6',
     },
     {
       name: 'ATS Score',
       value: data.ats_score,
-      color: '#64B5F6',
+      color: '#6366F1',
     },
   ]
 
@@ -108,185 +97,247 @@ function ResultsDashboard({ data, onNewAnalysis }) {
   }
 
   return (
-    <Box>
+    <div className="space-y-6">
       {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h3">Your Resume Analysis</Typography>
-        <Box>
-          <Button
-            variant="outlined"
-            startIcon={<FileDownloadIcon />}
-            onClick={handleExport}
-            sx={{ mr: 2 }}
-          >
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold tracking-tight">Your Resume Analysis</h2>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="mr-2 h-4 w-4" />
             Export Results
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<RefreshIcon />}
-            onClick={onNewAnalysis}
-          >
+          <Button onClick={onNewAnalysis}>
+            <RefreshCw className="mr-2 h-4 w-4" />
             New Analysis
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
+
+      {/* Job Match Section */}
+      {data.job_match && !data.job_match.error && (
+        <Card className="border-primary bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Target className="h-6 w-6 text-primary" />
+                <div>
+                  <CardTitle>Job Match Analysis</CardTitle>
+                  <CardDescription>
+                    {data.job_match.job_title} at {data.job_match.job_company}
+                  </CardDescription>
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold text-primary">
+                  {Math.round(data.job_match.overall_match_score)}%
+                </div>
+                <p className="text-sm text-muted-foreground">Match Score</p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Skills Match */}
+              <div>
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  Matching Skills ({data.job_match.skills_match.matched_count}/{data.job_match.skills_match.total_job_skills})
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {data.job_match.skills_match.matching_skills.slice(0, 10).map((skill, idx) => (
+                    <Badge key={idx} variant="default">
+                      {skill}
+                    </Badge>
+                  ))}
+                  {data.job_match.skills_match.matching_skills.length > 10 && (
+                    <Badge variant="outline">
+                      +{data.job_match.skills_match.matching_skills.length - 10} more
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Missing Skills */}
+              {data.job_match.skills_match.missing_skills.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                    Skills to Add
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {data.job_match.skills_match.missing_skills.slice(0, 10).map((skill, idx) => (
+                      <Badge key={idx} variant="destructive">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {data.job_match.skills_match.missing_skills.length > 10 && (
+                      <Badge variant="outline">
+                        +{data.job_match.skills_match.missing_skills.length - 10} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Job Match Recommendations */}
+            {data.job_match.recommendations && data.job_match.recommendations.length > 0 && (
+              <div className="mt-6">
+                <h4 className="font-semibold mb-3">Tailored Recommendations</h4>
+                <div className="space-y-2">
+                  {data.job_match.recommendations.slice(0, 3).map((rec, idx) => (
+                    <div key={idx} className="flex items-start gap-3 p-3 bg-background rounded-lg">
+                      <span className="text-lg">
+                        {rec.priority === 'high' && '🔴'}
+                        {rec.priority === 'medium' && '🟡'}
+                        {rec.priority === 'low' && '🟢'}
+                      </span>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{rec.title}</p>
+                        <p className="text-sm text-muted-foreground">{rec.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Job Match Error */}
+      {data.job_match && data.job_match.error && (
+        <Alert variant="destructive">
+          <XCircle className="h-4 w-4" />
+          <AlertDescription>
+            {data.job_match.error_message}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Overall Score */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={4}>
-          <Card elevation={3}>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="h6" gutterBottom>
-                Overall Score
-              </Typography>
-              <Box sx={{ position: 'relative', display: 'inline-flex', my: 2 }}>
-                <CircularProgress
-                  variant="determinate"
-                  value={data.overall_score}
-                  size={120}
-                  thickness={5}
-                  color={scoreInfo.color}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="md:col-span-1">
+          <CardContent className="text-center pt-8 pb-8">
+            <h3 className="text-lg font-semibold mb-4">Overall Score</h3>
+            <div className="relative inline-flex items-center justify-center my-4">
+              <svg className="w-32 h-32 transform -rotate-90">
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="56"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  className="text-muted"
                 />
-                <Box
-                  sx={{
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                    right: 0,
-                    position: 'absolute',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Typography variant="h4" component="div">
-                    {Math.round(data.overall_score)}
-                  </Typography>
-                </Box>
-              </Box>
-              <Chip label={scoreInfo.label} color={scoreInfo.color} size="large" />
-            </CardContent>
-          </Card>
-        </Grid>
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="56"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  fill="none"
+                  strokeDasharray={`${(data.overall_score / 100) * 351.86} 351.86`}
+                  className="text-primary transition-all duration-1000"
+                />
+              </svg>
+              <div className="absolute">
+                <span className="text-4xl font-bold">{Math.round(data.overall_score)}</span>
+              </div>
+            </div>
+            <Badge variant={scoreInfo.variant} className="text-base px-4 py-1">
+              {scoreInfo.label}
+            </Badge>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} md={8}>
-          <Card elevation={3}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Resume Summary
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Total Experience
-                  </Typography>
-                  <Typography variant="h6">
-                    {data.analysis.total_experience_years} years
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Skills Identified
-                  </Typography>
-                  <Typography variant="h6">
-                    {data.skills.technical.length + data.skills.soft.length}
-                  </Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Education Entries
-                  </Typography>
-                  <Typography variant="h6">{data.education.length}</Typography>
-                </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    ATS Compatibility
-                  </Typography>
-                  <Typography variant="h6">{Math.round(data.ats_score)}/100</Typography>
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        <Card className="md:col-span-2">
+          <CardContent className="pt-6">
+            <h3 className="text-lg font-semibold mb-4">Resume Summary</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Experience</p>
+                <p className="text-2xl font-semibold">{data.analysis.total_experience_years} years</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Skills Identified</p>
+                <p className="text-2xl font-semibold">
+                  {data.skills.technical.length + data.skills.soft.length}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Education Entries</p>
+                <p className="text-2xl font-semibold">{data.education.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">ATS Compatibility</p>
+                <p className="text-2xl font-semibold">{Math.round(data.ats_score)}/100</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* AI Suggestions */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h5" gutterBottom>
-          AI-Powered Suggestions
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-          Prioritized recommendations to improve your resume
-        </Typography>
-
-        {data.ai_suggestions.length === 0 ? (
-          <Alert severity="info">
-            No suggestions available. Your resume looks great!
-          </Alert>
-        ) : (
-          data.ai_suggestions.map((suggestion, index) => (
-            <Accordion
-              key={index}
-              expanded={expandedSuggestion === index}
-              onChange={() =>
-                setExpandedSuggestion(expandedSuggestion === index ? null : index)
-              }
-              sx={{ mb: 1 }}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                  <Typography sx={{ mr: 2 }}>
-                    {getPriorityIcon(suggestion.priority)}
-                  </Typography>
-                  <Typography sx={{ flexGrow: 1 }}>{suggestion.suggestion}</Typography>
-                  <Chip
-                    label={suggestion.priority.toUpperCase()}
-                    color={getPriorityColor(suggestion.priority)}
-                    size="small"
-                    sx={{ ml: 2 }}
-                  />
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                {suggestion.rationale && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    <strong>Why this matters:</strong> {suggestion.rationale}
-                  </Typography>
-                )}
-                {suggestion.examples && suggestion.examples.length > 0 && (
-                  <Box>
-                    <Typography variant="body2" fontWeight={600} gutterBottom>
-                      Examples:
-                    </Typography>
-                    {suggestion.examples.map((example, idx) => (
-                      <Typography
-                        key={idx}
-                        variant="body2"
-                        sx={{
-                          pl: 2,
-                          py: 0.5,
-                          fontFamily: 'monospace',
-                          fontSize: '0.875rem',
-                        }}
-                      >
-                        • {example}
-                      </Typography>
-                    ))}
-                  </Box>
-                )}
-              </AccordionDetails>
+      <Card>
+        <CardHeader>
+          <CardTitle>AI-Powered Suggestions</CardTitle>
+          <CardDescription>Prioritized recommendations to improve your resume</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {data.ai_suggestions.length === 0 ? (
+            <Alert>
+              <AlertDescription>
+                No suggestions available. Your resume looks great!
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Accordion type="single" collapsible>
+              {data.ai_suggestions.map((suggestion, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center gap-3 flex-1 text-left">
+                      <span className="text-lg">{getPriorityIcon(suggestion.priority)}</span>
+                      <span className="flex-1">{suggestion.suggestion}</span>
+                      <Badge variant={getPriorityVariant(suggestion.priority)} className="ml-2">
+                        {suggestion.priority.toUpperCase()}
+                      </Badge>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {suggestion.rationale && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        <strong>Why this matters:</strong> {suggestion.rationale}
+                      </p>
+                    )}
+                    {suggestion.examples && suggestion.examples.length > 0 && (
+                      <div>
+                        <p className="text-sm font-semibold mb-2">Examples:</p>
+                        <ul className="space-y-1">
+                          {suggestion.examples.map((example, idx) => (
+                            <li key={idx} className="text-sm font-mono pl-4">
+                              • {example}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
-          ))
-        )}
-      </Paper>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Skills Breakdown */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Skills by Category
-            </Typography>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Skills by Category</CardTitle>
+          </CardHeader>
+          <CardContent>
             {skillsData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -308,128 +359,110 @@ function ResultsDashboard({ data, onNewAnalysis }) {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <Typography variant="body2" color="text.secondary">
-                No skills data available
-              </Typography>
+              <p className="text-sm text-muted-foreground">No skills data available</p>
             )}
-          </Paper>
-        </Grid>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} md={6}>
-          <Paper elevation={2} sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Content Analysis
-            </Typography>
+        <Card>
+          <CardHeader>
+            <CardTitle>Content Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={metricsData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#1976D2">
+                <Bar dataKey="value" fill="#0EA5E9">
                   {metricsData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </Paper>
-        </Grid>
-      </Grid>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Skills Details */}
-      <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          Technical Skills
-        </Typography>
-        <Grid container spacing={1}>
-          {data.skills.technical.slice(0, 20).map((skill, index) => (
-            <Grid item key={index}>
-              <Chip
-                label={`${skill.name} (${skill.count})`}
-                color="primary"
-                variant="outlined"
-                size="small"
-              />
-            </Grid>
-          ))}
-        </Grid>
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-lg font-semibold mb-3">Technical Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {data.skills.technical.slice(0, 20).map((skill, index) => (
+              <Badge key={index} variant="outline">
+                {skill.name} ({skill.count})
+              </Badge>
+            ))}
+          </div>
 
-        <Divider sx={{ my: 3 }} />
+          <hr className="my-6 border-border" />
 
-        <Typography variant="h6" gutterBottom>
-          Soft Skills
-        </Typography>
-        <Grid container spacing={1}>
-          {data.skills.soft.slice(0, 10).map((skill, index) => (
-            <Grid item key={index}>
-              <Chip
-                label={`${skill.name} (${skill.count})`}
-                color="secondary"
-                variant="outlined"
-                size="small"
-              />
-            </Grid>
-          ))}
-        </Grid>
-      </Paper>
+          <h3 className="text-lg font-semibold mb-3">Soft Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {data.skills.soft.slice(0, 10).map((skill, index) => (
+              <Badge key={index} variant="secondary">
+                {skill.name} ({skill.count})
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Experience Timeline */}
       {data.experience && data.experience.length > 0 && (
-        <Paper elevation={2} sx={{ p: 3, mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Experience Timeline
-          </Typography>
-          <List>
-            {data.experience.map((exp, index) => (
-              <ListItem key={index} sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle1" fontWeight={600}>
-                    {exp.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {exp.company} • {exp.start_date} - {exp.end_date}{' '}
-                    {exp.duration_months && `(${exp.duration_months} months)`}
-                  </Typography>
-                  {exp.responsibilities && exp.responsibilities.length > 0 && (
-                    <List dense>
-                      {exp.responsibilities.slice(0, 3).map((resp, idx) => (
-                        <ListItem key={idx} sx={{ py: 0.5 }}>
-                          <ListItemText
-                            primary={`• ${resp}`}
-                            primaryTypographyProps={{ variant: 'body2' }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  )}
-                </Box>
-                {index < data.experience.length - 1 && <Divider sx={{ width: '100%', mt: 2 }} />}
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
+        <Card>
+          <CardHeader>
+            <CardTitle>Experience Timeline</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {data.experience.map((exp, index) => (
+                <div key={index}>
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-base">{exp.title}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {exp.company} • {exp.start_date} - {exp.end_date}{' '}
+                      {exp.duration_months && `(${exp.duration_months} months)`}
+                    </p>
+                    {exp.responsibilities && exp.responsibilities.length > 0 && (
+                      <ul className="mt-2 space-y-1">
+                        {exp.responsibilities.slice(0, 3).map((resp, idx) => (
+                          <li key={idx} className="text-sm ml-4">
+                            • {resp}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                  {index < data.experience.length - 1 && <hr className="mt-4 border-border" />}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* ATS Recommendations */}
       {data.ats_recommendations && data.ats_recommendations.length > 0 && (
-        <Paper elevation={2} sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            ATS Optimization Tips
-          </Typography>
-          <List>
-            {data.ats_recommendations.map((rec, index) => (
-              <ListItem key={index}>
-                <ListItemText
-                  primary={`• ${rec}`}
-                  primaryTypographyProps={{ variant: 'body2' }}
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
+        <Card>
+          <CardHeader>
+            <CardTitle>ATS Optimization Tips</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {data.ats_recommendations.map((rec, index) => (
+                <li key={index} className="text-sm">
+                  • {rec}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
-    </Box>
+    </div>
   )
 }
 

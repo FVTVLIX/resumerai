@@ -1,23 +1,15 @@
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Grid,
-  Card,
-  CardContent,
-  Alert,
-} from '@mui/material'
-import CloudUploadIcon from '@mui/icons-material/CloudUpload'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import TimelineIcon from '@mui/icons-material/Timeline'
-import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates'
+import { Upload, CheckCircle, TrendingUp, Lightbulb, X, Link } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
+import { Alert, AlertDescription } from './ui/alert'
+import { Input } from './ui/input'
 
 function UploadSection({ onFileUpload }) {
   const [selectedFile, setSelectedFile] = useState(null)
   const [error, setError] = useState(null)
+  const [jobUrl, setJobUrl] = useState('')
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
     setError(null)
@@ -51,147 +43,156 @@ function UploadSection({ onFileUpload }) {
 
   const handleAnalyze = () => {
     if (selectedFile) {
-      onFileUpload(selectedFile)
+      onFileUpload(selectedFile, jobUrl)
     }
   }
 
   const handleClear = () => {
     setSelectedFile(null)
     setError(null)
+    setJobUrl('')
   }
 
   return (
-    <Box>
+    <div className="space-y-8">
       {/* Hero Section */}
-      <Box sx={{ textAlign: 'center', mb: 6, mt: 4 }}>
-        <Typography variant="h1" gutterBottom>
+      <div className="text-center mt-4 mb-6">
+        <h1 className="text-4xl font-bold tracking-tight mb-3">
           Optimize Your Resume with AI
-        </Typography>
-        <Typography variant="h6" color="text.secondary" sx={{ mb: 4 }}>
+        </h1>
+        <p className="text-lg text-muted-foreground mb-4">
           Get instant feedback and improve your job prospects
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* Upload Area */}
-      <Paper
-        elevation={3}
-        sx={{
-          p: 4,
-          mb: 4,
-          border: isDragActive ? '2px solid' : '2px dashed',
-          borderColor: isDragActive ? 'primary.main' : 'grey.300',
-          bgcolor: isDragActive ? 'primary.light' : 'background.paper',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            borderColor: 'primary.main',
-            bgcolor: 'action.hover',
-          },
-        }}
+      <div
+        className={`
+          p-8 mb-4 rounded-lg border-2 cursor-pointer transition-all duration-300
+          ${isDragActive
+            ? 'border-primary bg-primary/5 border-solid'
+            : 'border-dashed border-border hover:border-primary hover:bg-accent'
+          }
+        `}
         {...getRootProps()}
       >
         <input {...getInputProps()} />
-        <Box sx={{ textAlign: 'center' }}>
-          <CloudUploadIcon sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
-          <Typography variant="h5" gutterBottom>
+        <div className="text-center">
+          <Upload className="mx-auto h-20 w-20 text-primary mb-4" />
+          <h2 className="text-xl font-semibold mb-2">
             {isDragActive ? 'Drop your resume here' : 'Drag & drop your resume here'}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          </h2>
+          <p className="text-muted-foreground mb-2">
             or click to browse
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
+          </p>
+          <p className="text-sm text-muted-foreground">
             Supported formats: PDF, DOCX (Max 5MB)
-          </Typography>
-        </Box>
-      </Paper>
+          </p>
+        </div>
+      </div>
+
+      {/* Job URL Input (Optional) */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Link className="h-5 w-5 text-primary mt-2.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold mb-1">Job Posting URL (Optional)</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Compare your resume to a specific job posting for tailored recommendations
+              </p>
+              <Input
+                type="url"
+                placeholder="https://linkedin.com/jobs/view/123456789 or any job posting URL"
+                value={jobUrl}
+                onChange={(e) => setJobUrl(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Error Message */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
+        <Alert variant="destructive" className="mb-3">
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-4 hover:opacity-70"
+              aria-label="Close"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </AlertDescription>
         </Alert>
       )}
 
       {/* Selected File */}
       {selectedFile && (
-        <Paper elevation={2} sx={{ p: 3, mb: 4, bgcolor: 'success.light', color: 'success.contrastText' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <CheckCircleIcon sx={{ mr: 2, fontSize: 32 }} />
-              <Box>
-                <Typography variant="h6">File Selected</Typography>
-                <Typography variant="body2">
+        <div className="p-4 mb-4 rounded-lg bg-green-50 border border-green-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-green-900">File Selected</h3>
+                <p className="text-sm text-green-700">
                   {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-                </Typography>
-              </Box>
-            </Box>
-            <Box>
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
               <Button
-                variant="contained"
-                color="primary"
-                size="large"
+                size="lg"
                 onClick={handleAnalyze}
-                sx={{ mr: 2 }}
               >
                 Analyze Resume
               </Button>
               <Button
-                variant="outlined"
-                color="inherit"
+                variant="outline"
                 onClick={handleClear}
               >
                 Clear
               </Button>
-            </Box>
-          </Box>
-        </Paper>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Features Grid */}
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} md={4}>
-          <Card elevation={2}>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <CheckCircleIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Accurate Analysis
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Advanced NLP algorithms extract skills, experience, and education with high precision
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+        <Card>
+          <CardContent className="text-center pt-6 pb-6">
+            <CheckCircle className="mx-auto h-15 w-15 text-primary mb-4" />
+            <CardTitle className="mb-2">Accurate Analysis</CardTitle>
+            <CardDescription>
+              Advanced NLP algorithms extract skills, experience, and education with high precision
+            </CardDescription>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} md={4}>
-          <Card elevation={2}>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <TimelineIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Detailed Insights
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Comprehensive breakdown of your resume including skills, experience timeline, and metrics
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardContent className="text-center pt-6 pb-6">
+            <TrendingUp className="mx-auto h-15 w-15 text-primary mb-4" />
+            <CardTitle className="mb-2">Detailed Insights</CardTitle>
+            <CardDescription>
+              Comprehensive breakdown of your resume including skills, experience timeline, and metrics
+            </CardDescription>
+          </CardContent>
+        </Card>
 
-        <Grid item xs={12} md={4}>
-          <Card elevation={2}>
-            <CardContent sx={{ textAlign: 'center', py: 4 }}>
-              <TipsAndUpdatesIcon sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-              <Typography variant="h6" gutterBottom>
-                Actionable Suggestions
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                AI-powered recommendations to improve your resume and optimize for ATS systems
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
+        <Card>
+          <CardContent className="text-center pt-6 pb-6">
+            <Lightbulb className="mx-auto h-15 w-15 text-primary mb-4" />
+            <CardTitle className="mb-2">Actionable Suggestions</CardTitle>
+            <CardDescription>
+              AI-powered recommendations to improve your resume and optimize for ATS systems
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   )
 }
 

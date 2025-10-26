@@ -1,21 +1,20 @@
-import { AppBar, Toolbar, Typography, Box } from '@mui/material'
-import AssessmentIcon from '@mui/icons-material/Assessment'
+import { FileText } from 'lucide-react'
 
 function Header() {
   return (
-    <AppBar position="static" elevation={2}>
-      <Toolbar>
-        <AssessmentIcon sx={{ mr: 2, fontSize: 32 }} />
-        <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
-          AI Resume Analyzer
-        </Typography>
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Typography variant="body2" color="inherit" sx={{ opacity: 0.8 }}>
-            Powered by AI
-          </Typography>
-        </Box>
-      </Toolbar>
-    </AppBar>
+    <header className="border-b bg-primary text-primary-foreground">
+      <div className="container mx-auto px-4">
+        <div className="flex h-16 items-center justify-between">
+          <div className="flex items-center gap-3">
+            <FileText className="h-8 w-8" />
+            <h1 className="text-xl font-semibold">AI Resume Analyzer</h1>
+          </div>
+          <div className="hidden md:block">
+            <p className="text-sm opacity-90">Powered by AI</p>
+          </div>
+        </div>
+      </div>
+    </header>
   )
 }
 

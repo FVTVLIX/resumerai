@@ -1,18 +1,7 @@
-import {
-  Box,
-  Paper,
-  Typography,
-  LinearProgress,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Button,
-  CircularProgress,
-} from '@mui/material'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked'
-import AutorenewIcon from '@mui/icons-material/Autorenew'
+import { CheckCircle, Circle, Loader2 } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card'
+import { Progress } from './ui/progress'
 
 const steps = [
   { id: 1, label: 'File uploaded successfully', threshold: 10 },
@@ -33,106 +22,73 @@ function AnalysisProgress({ progress, currentStep, onCancel }) {
   }
 
   return (
-    <Box sx={{ maxWidth: 800, mx: 'auto', mt: 8 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom align="center">
-          Analyzing Your Resume...
-        </Typography>
+    <div className="max-w-3xl mx-auto mt-8">
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl">Analyzing Your Resume...</CardTitle>
+          <CardDescription className="text-base">
+            This usually takes 10-15 seconds...
+          </CardDescription>
+        </CardHeader>
 
-        <Typography
-          variant="body1"
-          color="text.secondary"
-          align="center"
-          sx={{ mb: 4 }}
-        >
-          This usually takes 10-15 seconds...
-        </Typography>
-
-        {/* Progress Bar */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Box sx={{ width: '100%', mr: 2 }}>
-              <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{ height: 10, borderRadius: 5 }}
-              />
-            </Box>
-            <Box sx={{ minWidth: 50 }}>
-              <Typography variant="body2" color="text.secondary">
+        <CardContent className="space-y-6">
+          {/* Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Progress value={progress} className="flex-1" />
+              <span className="text-sm text-muted-foreground min-w-[3rem] text-right">
                 {Math.round(progress)}%
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
+              </span>
+            </div>
+          </div>
 
-        {/* Steps List */}
-        <List>
-          {steps.map((step) => {
-            const status = getStepStatus(step.threshold)
-            return (
-              <ListItem key={step.id}>
-                <ListItemIcon>
-                  {status === 'completed' && (
-                    <CheckCircleIcon color="success" />
-                  )}
-                  {status === 'in-progress' && (
-                    <CircularProgress size={24} />
-                  )}
-                  {status === 'pending' && (
-                    <RadioButtonUncheckedIcon color="disabled" />
-                  )}
-                </ListItemIcon>
-                <ListItemText
-                  primary={step.label}
-                  primaryTypographyProps={{
-                    color: status === 'completed' ? 'text.primary' : 'text.secondary',
-                    fontWeight: status === 'in-progress' ? 600 : 400,
-                  }}
-                />
-              </ListItem>
-            )
-          })}
-        </List>
+          {/* Steps List */}
+          <ul className="space-y-3">
+            {steps.map((step) => {
+              const status = getStepStatus(step.threshold)
+              return (
+                <li key={step.id} className="flex items-center gap-3">
+                  <div className="flex-shrink-0">
+                    {status === 'completed' && (
+                      <CheckCircle className="h-6 w-6 text-green-600" />
+                    )}
+                    {status === 'in-progress' && (
+                      <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                    )}
+                    {status === 'pending' && (
+                      <Circle className="h-6 w-6 text-muted-foreground" />
+                    )}
+                  </div>
+                  <span
+                    className={`
+                      ${status === 'completed' ? 'text-foreground' : 'text-muted-foreground'}
+                      ${status === 'in-progress' ? 'font-semibold' : 'font-normal'}
+                    `}
+                  >
+                    {step.label}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
 
-        {/* Current Step */}
-        {currentStep && (
-          <Box
-            sx={{
-              mt: 3,
-              p: 2,
-              bgcolor: 'primary.light',
-              borderRadius: 1,
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <AutorenewIcon
-              sx={{
-                mr: 2,
-                animation: 'spin 2s linear infinite',
-                '@keyframes spin': {
-                  '0%': {
-                    transform: 'rotate(0deg)',
-                  },
-                  '100%': {
-                    transform: 'rotate(360deg)',
-                  },
-                },
-              }}
-            />
-            <Typography variant="body1">{currentStep}</Typography>
-          </Box>
-        )}
+          {/* Current Step */}
+          {currentStep && (
+            <div className="mt-4 p-3 bg-primary/10 rounded-lg flex items-center gap-3">
+              <Loader2 className="h-5 w-5 text-primary animate-spin" />
+              <p className="text-sm font-medium">{currentStep}</p>
+            </div>
+          )}
 
-        {/* Cancel Button */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Button variant="outlined" color="error" onClick={onCancel}>
-            Cancel Analysis
-          </Button>
-        </Box>
-      </Paper>
-    </Box>
+          {/* Cancel Button */}
+          <div className="mt-6 text-center">
+            <Button variant="destructive" onClick={onCancel}>
+              Cancel Analysis
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
